@@ -1,0 +1,80 @@
+==10104== Invalid write of size 8
+==10104==    at 0x109584: loader_add_server (load_balancer.c:125)
+==10104==    by 0x109024: apply_requests (main.c:85)
+==10104==    by 0x1091B1: main (main.c:110)
+==10104==  Address 0x405231248 is not stack'd, malloc'd or (recently) free'd
+==10104== 
+==10104== 
+==10104== Process terminating with default action of signal 11 (SIGSEGV)
+==10104==  Access not within mapped region at address 0x405231248
+==10104==    at 0x109584: loader_add_server (load_balancer.c:125)
+==10104==    by 0x109024: apply_requests (main.c:85)
+==10104==    by 0x1091B1: main (main.c:110)
+==10104==  If you believe this happened as a result of a stack
+==10104==  overflow in your program's main thread (unlikely but
+==10104==  possible), you can try to increase the size of the
+==10104==  main thread stack using the --main-stacksize= flag.
+==10104==  The main thread stack size used in this run was 8388608.
+==10104== 16 bytes in 1 blocks are still reachable in loss record 1 of 9
+==10104==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==10104==    by 0x109267: init_load_balancer (load_balancer.c:48)
+==10104==    by 0x108E12: apply_requests (main.c:55)
+==10104==    by 0x1091B1: main (main.c:110)
+==10104== 
+==10104== 32 bytes in 2 blocks are still reachable in loss record 2 of 9
+==10104==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==10104==    by 0x1098EC: init_server_memory (server.c:16)
+==10104==    by 0x1092C1: loader_add_server (load_balancer.c:62)
+==10104==    by 0x109024: apply_requests (main.c:85)
+==10104==    by 0x1091B1: main (main.c:110)
+==10104== 
+==10104== 32 bytes in 2 blocks are still reachable in loss record 3 of 9
+==10104==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==10104==    by 0x109426: loader_add_server (load_balancer.c:104)
+==10104==    by 0x109024: apply_requests (main.c:85)
+==10104==    by 0x1091B1: main (main.c:110)
+==10104== 
+==10104== 48 bytes in 1 blocks are still reachable in loss record 4 of 9
+==10104==    at 0x4C31D2F: realloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==10104==    by 0x1093B4: loader_add_server (load_balancer.c:93)
+==10104==    by 0x109024: apply_requests (main.c:85)
+==10104==    by 0x1091B1: main (main.c:110)
+==10104== 
+==10104== 48 bytes in 3 blocks are still reachable in loss record 5 of 9
+==10104==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==10104==    by 0x109310: loader_add_server (load_balancer.c:76)
+==10104==    by 0x109024: apply_requests (main.c:85)
+==10104==    by 0x1091B1: main (main.c:110)
+==10104== 
+==10104== 80 bytes in 2 blocks are still reachable in loss record 6 of 9
+==10104==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==10104==    by 0x109EDC: ht_create (list_ht.c:315)
+==10104==    by 0x109918: init_server_memory (server.c:17)
+==10104==    by 0x1092C1: loader_add_server (load_balancer.c:62)
+==10104==    by 0x109024: apply_requests (main.c:85)
+==10104==    by 0x1091B1: main (main.c:110)
+==10104== 
+==10104== 552 bytes in 1 blocks are still reachable in loss record 7 of 9
+==10104==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==10104==    by 0x4EBAEB9: __fopen_internal (iofopen.c:65)
+==10104==    by 0x4EBAEB9: fopen@@GLIBC_2.2.5 (iofopen.c:89)
+==10104==    by 0x109159: main (main.c:107)
+==10104== 
+==10104== 640 bytes in 2 blocks are still reachable in loss record 8 of 9
+==10104==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==10104==    by 0x109F2E: ht_create (list_ht.c:323)
+==10104==    by 0x109918: init_server_memory (server.c:17)
+==10104==    by 0x1092C1: loader_add_server (load_balancer.c:62)
+==10104==    by 0x109024: apply_requests (main.c:85)
+==10104==    by 0x1091B1: main (main.c:110)
+==10104== 
+==10104== 1,280 bytes in 80 blocks are still reachable in loss record 9 of 9
+==10104==    at 0x4C2FB0F: malloc (in /usr/lib/valgrind/vgpreload_memcheck-amd64-linux.so)
+==10104==    by 0x1099D9: ll_create (list_ht.c:24)
+==10104==    by 0x109F5D: ht_create (list_ht.c:325)
+==10104==    by 0x109918: init_server_memory (server.c:17)
+==10104==    by 0x1092C1: loader_add_server (load_balancer.c:62)
+==10104==    by 0x109024: apply_requests (main.c:85)
+==10104==    by 0x1091B1: main (main.c:110)
+==10104== 
+timeout: the monitored command dumped core

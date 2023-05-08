@@ -14,7 +14,7 @@ server_memory *init_server_memory()
 {
 	/* TODO 1 */
 	server_memory* new_server = malloc(sizeof(server_memory));
-	new_server->ht = ht_create(HMAX, hash_function_key,compare_function_chars,
+	new_server->ht = ht_create(HMAX, hash_function_key,compare_function_strings,
 		key_val_free_function);
 	return new_server;
 }
@@ -22,11 +22,12 @@ server_memory *init_server_memory()
 void server_store(server_memory *server, char *key, char *value) {
 	/* TODO 2 */
 	ht_put(server->ht, key, strlen(key) + 1, value, strlen(value) + 1);
+	//printf("\nPUS: %s\n",(char*)ht_get(server->ht,key));
 }
 
 char *server_retrieve(server_memory *server, char *key) {
 	/* TODO 3 */
-	return ht_get(server->ht,key);
+	return (char*)ht_get(server->ht,key);
 }
 
 void server_remove(server_memory *server, char *key) {
