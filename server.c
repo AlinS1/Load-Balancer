@@ -22,7 +22,7 @@ server_memory *init_server_memory()
 void server_store(server_memory *server, char *key, char *value) {
 	/* TODO 2 */
 	ht_put(server->ht, key, strlen(key) + 1, value, strlen(value) + 1);
-	//printf("\nPUS: %s\n",(char*)ht_get(server->ht,key));
+	printf("\nPUS: %s\n",(char*)ht_get(server->ht,key));
 }
 
 char *server_retrieve(server_memory *server, char *key) {

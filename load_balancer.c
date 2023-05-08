@@ -104,8 +104,10 @@ void loader_add_server(load_balancer *main, int server_id) {
             new_et->nr_eticheta = i * 100000 + new_server->id;
             new_et->hash = hash_function_servers(&new_et->nr_eticheta);
 
-            int j,k;
-            for(j = 0; j < (main->nr_servers - 1) * 3; j++){ // pos to put eticheta
+            int j = 0, k = 0;
+            // Find position to put
+            //printf("Upper limit:%d\n", (main->nr_servers - 1) * 3);
+            for(j = 0; j < (main->nr_servers - 1) * 3; j++){ 
                 if (new_et->hash == main->servers_et[j]->hash) {
                     if(new_et->server->id > main->servers_et[j]->server->id)
                         j++;
@@ -115,28 +117,27 @@ void loader_add_server(load_balancer *main, int server_id) {
                     break;
             }
 
-            for (k = (main->nr_servers - 1) * 3 + i - 1 ; k >= j; j--)
+            // Move elements to right
+            for (k = (main->nr_servers - 1) * 3 + i - 1 ; k >= j; k--)
                 main->servers_et[k + 1] = main->servers_et[k];
 
-            // if(main->servers_et[j]==NULL)
-            //     main->servers_et[j] = malloc(sizeof(eticheta*));
+            
+
             main->servers_et[j] = new_et;
-            // memcpy(main->servers_et[j],new_et,sizeof(eticheta*));
-            //free(new_et);
         }
         
 
     }
 
 
-    // for(int i = 0 ; i < main->nr_servers * 3 ; i++){
-    //     if(!main->servers_et[i]->server)
-    //         printf("NU e\n");
+    for(int i = 0 ; i < main->nr_servers * 3 ; i++){
+        if(!main->servers_et[i]->server)
+            printf("NU e\n");
 
-    //     printf("i:%d; id:%d ", i, main->servers_et[i]->server->id);
-    //     printf("et:%d ", main->servers_et[i]->nr_eticheta);
-    //     printf("hash: %d\n", main->servers_et[i]->hash);
-    // }
+        printf("i:%d; id:%d ", i, main->servers_et[i]->server->id);
+        printf("et:%d ", main->servers_et[i]->nr_eticheta);
+        printf("hash: %d\n", main->servers_et[i]->hash);
+    }
 
     // ===== ELEMENTE =====
 
@@ -169,15 +170,18 @@ void loader_store(load_balancer *main, char *key, char *value, int *server_id) {
         return;
     }
 
-    for(int i=0;i<main->nr_servers * 3 - 1;i++)
+    for(int i = 0; i < main->nr_servers * 3 - 1; i++)
         if(main->servers_et[i]<hash_obj && hash_obj<=main->servers_et[i+1])
             {
                 *server_id = main->servers_et[i+1]->server->id;
                 server_store(main->servers_et[i+1]->server,key,value);
-
-                
                 return;
             }
+    if (hash_obj > main->servers_et[main->nr_servers * 3 - 1]->hash){
+        *server_id = main->servers_et[0]->server->id;
+        server_store(main->servers_et[0]->server,key,value);
+        return;
+    }
 
 }
 
