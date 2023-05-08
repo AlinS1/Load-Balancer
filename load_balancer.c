@@ -11,7 +11,7 @@
 
 struct eticheta {
     int nr_eticheta;
-    int hash;
+    unsigned int hash;
     server_memory* server;
 };
 
@@ -130,14 +130,14 @@ void loader_add_server(load_balancer *main, int server_id) {
     }
 
 
-    for(int i = 0 ; i < main->nr_servers * 3 ; i++){
-        if(!main->servers_et[i]->server)
-            printf("NU e\n");
+    // for(int i = 0 ; i < main->nr_servers * 3 ; i++){
+    //     if(!main->servers_et[i]->server)
+    //         printf("NU e\n");
 
-        printf("i:%d; id:%d ", i, main->servers_et[i]->server->id);
-        printf("et:%d ", main->servers_et[i]->nr_eticheta);
-        printf("hash: %d\n", main->servers_et[i]->hash);
-    }
+    //     printf("i:%d; id:%d ", i, main->servers_et[i]->server->id);
+    //     printf("et:%d ", main->servers_et[i]->nr_eticheta);
+    //     printf("hash: %d\n", main->servers_et[i]->hash);
+    // }
 
     // ===== ELEMENTE =====
 
@@ -164,14 +164,14 @@ void loader_store(load_balancer *main, char *key, char *value, int *server_id) {
 
     int hash_obj = hash_function_key(key);
 
-    if (hash_obj < main->servers_et[0]){
+    if (hash_obj < main->servers_et[0]->hash){
         *server_id = main->servers_et[0]->server->id;
         server_store(main->servers_et[0]->server,key,value);
         return;
     }
 
     for(int i = 0; i < main->nr_servers * 3 - 1; i++)
-        if(main->servers_et[i]<hash_obj && hash_obj<=main->servers_et[i+1])
+        if(main->servers_et[i]->hash < hash_obj && hash_obj <= main->servers_et[i+1]->hash)
             {
                 *server_id = main->servers_et[i+1]->server->id;
                 server_store(main->servers_et[i+1]->server,key,value);
