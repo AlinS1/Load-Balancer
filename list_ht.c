@@ -1,5 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
+
 
 #define MAX_STRING_SIZE 256
 #define HMAX 50

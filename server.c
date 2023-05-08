@@ -16,7 +16,7 @@ server_memory *init_server_memory()
 	server_memory* new_server = malloc(sizeof(server_memory));
 	new_server->ht = ht_create(HMAX, hash_function_key,compare_function_chars,
 		key_val_free_function);
-	return NULL;
+	return new_server;
 }
 
 void server_store(server_memory *server, char *key, char *value) {

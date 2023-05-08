@@ -77,7 +77,8 @@ void loader_add_server(load_balancer *main, int server_id) {
         for(int i = 0 ; i <= 2 ; i++){
             new_et->nr_eticheta = i * 100000 + new_server->id;
             new_et->hash = hash_function_servers(&new_et->nr_eticheta);
-            memcpy(main->servers_et[i],new_et,sizeof(eticheta*));
+            main->servers_et[i] = malloc(sizeof(eticheta*));
+            memcpy(main->servers_et[i], new_et, sizeof(eticheta*));
         }
         free(new_et);
 
@@ -115,7 +116,8 @@ void loader_add_server(load_balancer *main, int server_id) {
 
             for (k = (main->nr_servers - 1) * 3 + i - 1 ; k >= j; j--)
                 main->servers_et[k + 1] = main->servers_et[k];
-
+                
+            main->servers_et[j] = malloc(sizeof(eticheta*));
             memcpy(main->servers_et[j],new_et,sizeof(eticheta*));
         }
         free(new_et);

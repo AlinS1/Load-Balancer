@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=-std=c99 -Wall -Wextra
+CFLAGS=-g -std=c99 -Wall -Wextra
 LOAD=load_balancer
 SERVER=server
 LIST_HT=list_ht
