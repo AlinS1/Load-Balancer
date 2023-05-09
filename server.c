@@ -36,5 +36,9 @@ void server_remove(server_memory *server, char *key) {
 
 void free_server_memory(server_memory *server) {
 	/* TODO 5 */
-	ht_free(server->ht);
+	if(server->ht != NULL)
+		{
+			ht_free(server->ht);
+			server->ht = NULL;
+		}
 }

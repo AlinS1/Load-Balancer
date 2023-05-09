@@ -199,6 +199,10 @@ void ll_print_string(linked_list_t *list)
 	printf("\n");
 }
 
+// ===========================
+// =========HASHTABLE=========
+// ===========================
+
 typedef struct info info;
 struct info {
 	void *key;
