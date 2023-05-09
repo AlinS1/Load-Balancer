@@ -270,6 +270,9 @@ void free_load_balancer(load_balancer *main) {
     for(int i = 0; i < main->nr_servers * 3; i ++)
     {
         int curr_server_id;
+        if(main->servers_et[i] == NULL){
+            continue;
+        }
         if(main->servers_et[i]->server != NULL)
         {
             curr_server_id = main->servers_et[i]->server->id;
@@ -279,22 +282,22 @@ void free_load_balancer(load_balancer *main) {
             main->servers_et[i]->server = NULL;
             free(main->servers_et[i]);
 	        main->servers_et[i] = NULL;
-        }
-
-        for(int j = i + 1; i < main->nr_servers * 3; j++)
-        {
-            if(main->servers_et[j] == NULL)
-                continue;
-            if(main->servers_et[j]->id_server == curr_server_id)
-                {
-                    main->servers_et[j]->server = NULL;
-                    free(main->servers_et[j]);
-	                main->servers_et[j] = NULL;
-                }
-
-        }
         
 
+            for(int j = i + 1; i < main->nr_servers * 3; j++)
+            {
+                if(main->servers_et[j] == NULL)
+                    continue;
+                if(main->servers_et[j]->id_server == curr_server_id)
+                    {
+                        main->servers_et[j]->server = NULL;
+                        free(main->servers_et[j]);
+	                    main->servers_et[j] = NULL;
+                    }
+
+            }
+        
+        }
         
     }
 	
