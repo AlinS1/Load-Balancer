@@ -390,33 +390,25 @@ void move_objects_ht_by_hash(hashtable_t *ht_receive, hashtable_t *ht_give,
 		ll_node_t *node = ht_give->buckets[i]->head;
 		while (node != NULL) {
 			int transferred = 0;
-			int index_node_current = 0;
 			info *information = (info *)node->data;
 			char *current_key = (char *)information->key;
 
 			// If we find an element to transfer, we put it in ht_receive
 			// and eliminate it from ht_give.
-			if (hash_high > hash_function_key((void *)current_key) &&
-				hash_function_key((void *)current_key) > hash_low) {
+			unsigned int hash_obj = hash_function_key((void *)current_key);
+			if (hash_high >= hash_obj && hash_obj > hash_low) {
 				char *current_value = (char *)information->value;
 				ht_put(ht_receive, current_key, strlen(current_key) + 1,
 					   current_value, strlen(current_value) + 1);
-				ht_give->key_val_free_function(node->data);
 				transferred = 1;
 			}
 
 			node = node->next;
+
 			// If we have transferred an object, we need to remove it from the
 			// list.
-			if (transferred == 1) {
-				ll_node_t *removed =
-					ll_remove_nth_node(ht_give->buckets[i], index_node_current);
-				free(removed->data);
-				removed->data = NULL;
-				free(removed);
-				removed = NULL;
-			}
-			index_node_current++;
+			if (transferred == 1)
+				ht_remove_entry(ht_give, current_key);
 		}
 	}
 }

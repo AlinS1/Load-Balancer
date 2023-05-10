@@ -86,7 +86,7 @@ void loader_add_server(load_balancer *main, int server_id)
 		}
 
 		order_labels(main);	 // Order the labels in the hash ring.
-
+		return;
 	} else {  // The server to add is not the first to have been added
 		main->nr_servers++;
 
@@ -129,11 +129,46 @@ void loader_add_server(load_balancer *main, int server_id)
 		// For each label, if applicable, we transfer objects from the following
 		// label that will have a smaller hash than the label's hash.
 		if (main->hash_ring[i]->id_server == added_server_id) {
-			if (i + 1 < main->nr_servers * NR_L &&
-				main->hash_ring[i + 1]->id_server == added_server_id)
+			// Do not transfer from a server to the same server.
+			// See if there are more servers next to each other and then move
+			// the elements from the first label to the last towards the next
+			// server
+			int j = i + 1;
+			if (j < main->nr_servers * NR_L &&
+				main->hash_ring[j]->id_server == server_id) {
+				int initial = i;
+				while (j + 1 < main->nr_servers * NR_L &&
+					   main->hash_ring[j + 1]->id_server == server_id) {
+					j++;
+				}
+				if (j == main->nr_servers * 3 - 1) {
+					move_objects_ht_by_hash(
+						main->hash_ring[initial]->server->ht,
+						main->hash_ring[0]->server->ht,
+						main->hash_ring[j]->hash,
+						main->hash_ring[initial - 1]->hash);
+					i = j;
+
+					continue;
+				}
+				if (initial == 0) {
+					move_objects_ht_by_hash(
+						main->hash_ring[initial]->server->ht,
+						main->hash_ring[j + 1]->server->ht,
+						main->hash_ring[j]->hash, 0);
+					i = j;
+
+					continue;
+				}
+				move_objects_ht_by_hash(main->hash_ring[initial]->server->ht,
+										main->hash_ring[j + 1]->server->ht,
+										main->hash_ring[j]->hash,
+										main->hash_ring[initial - 1]->hash);
+				i = j;
 				continue;
-			else
+			} else {
 				cases_move_objects_for_add_server(main, i);
+			}
 		}
 	}
 }
@@ -147,11 +182,43 @@ void loader_remove_server(load_balancer *main, int server_id)
 	int moved_first_n_last = 0;
 	for (int i = 0; i < main->nr_servers * NR_L; i++) {
 		if (main->hash_ring[i]->id_server == server_id) {
-			// Do not transfer from a server to the same server
-			if (i + 1 < main->nr_servers * NR_L &&
-				main->hash_ring[i + 1]->id_server == server_id) {
+			// Do not transfer from a server to the same server.
+			// See if there are more servers next to each other and then move
+			// the elements from the first label to the last towards the next
+			// server
+			int j = i + 1;
+			if (j < main->nr_servers * NR_L &&
+				main->hash_ring[j]->id_server == server_id) {
+				int initial = i;
+				while (j + 1 < main->nr_servers * NR_L &&
+					   main->hash_ring[j + 1]->id_server == server_id) {
+					j++;
+				}
+				if (j == main->nr_servers * 3 - 1) {
+					move_objects_ht_by_hash(
+						main->hash_ring[0]->server->ht,
+						main->hash_ring[initial]->server->ht,
+						main->hash_ring[j + 1]->hash,
+						main->hash_ring[initial - 1]->hash);
+					i = j;
+					continue;
+				}
+				if (initial == 0) {
+					move_objects_ht_by_hash(
+						main->hash_ring[j + 1]->server->ht,
+						main->hash_ring[initial]->server->ht,
+						main->hash_ring[j + 1]->hash, 0);
+					i = j;
+					continue;
+				}
+				move_objects_ht_by_hash(main->hash_ring[j + 1]->server->ht,
+										main->hash_ring[initial]->server->ht,
+										main->hash_ring[j + 1]->hash,
+										main->hash_ring[initial - 1]->hash);
+				i = j;
 				continue;
 			}
+
 			if (i == main->nr_servers * NR_L - 1 && moved_first_n_last == 1)
 				continue;
 			if (i == 0)
