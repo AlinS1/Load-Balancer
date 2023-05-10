@@ -1,7 +1,8 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdio.h>
 
+#include "load_balancer.h"
 
 #define MAX_STRING_SIZE 256
 #define HMAX 50
@@ -521,4 +522,80 @@ unsigned int ht_get_hmax(hashtable_t *ht)
 		return 0;
 
 	return ht->hmax;
+}
+
+// Moves the elements from 2nd to 1st, considering the given hash
+void move_objects_ht_by_hash(hashtable_t *ht_receive, hashtable_t *ht_give,
+							 unsigned int hash_receive)
+{
+	// Go through the elements of the hashtable that may have to transfer
+	// some of its elements
+	for (unsigned int i = 0; i < ht_give->hmax; ++i) {
+		ll_node_t *node = ht_give->buckets[i]->head;
+		while (node != NULL) {
+			int transferred = 0;
+			int index_node_current = 0;
+			info *information = (info *)node->data;
+			char *current_key = (char *)information->key;
+
+			// If we find an element to transfer, we put it in ht_receive
+			// and eliminate it from ht_give.
+			if (hash_receive > hash_function_key(current_key)) {
+				char *current_value = (char *)information->value;
+				ht_put(ht_receive, current_key, strlen(current_key) + 1,
+					   current_value, strlen(current_value) + 1);
+				ht_give->key_val_free_function(node->data);
+				transferred = 1;
+			}
+
+			node = node->next;
+			// If we transfer an object, we need to remove it from the list.
+			if (transferred == 1) {
+				ll_node_t *removed =
+					ll_remove_nth_node(ht_give->buckets[i], index_node_current);
+				free(removed->data);
+				removed->data = NULL;
+				free(removed);
+				removed = NULL;
+			}
+			index_node_current++;
+		}
+	}
+}
+
+void move_all_objects_ht(hashtable_t *ht_receive, hashtable_t *ht_give)
+{
+	// Go through the elements of the hashtable that may have to transfer
+	// some of its elements
+	for (unsigned int i = 0; i < ht_give->hmax; ++i) {
+		ll_node_t *node = ht_give->buckets[i]->head;
+		while (node != NULL) {
+			int index_node_current = 0;
+			info *information = (info *)node->data;
+			char *current_key = (char *)information->key;
+
+			// If we find an element to transfer, we put it in ht_receive
+			// and eliminate it from ht_give.
+			char *current_value = (char *)information->value;
+			ht_put(ht_receive, current_key, strlen(current_key) + 1,
+				   current_value, strlen(current_value) + 1);
+			ht_give->key_val_free_function(node->data);
+
+			// Go to next node in order not to lose the link.
+			node = node->next;
+
+			// If we transfer an object, we need to remove it from the list.
+			ll_node_t *removed =
+				ll_remove_nth_node(ht_give->buckets[i], index_node_current);
+			free(removed->data);
+			removed->data = NULL;
+			free(removed);
+			removed = NULL;
+
+			index_node_current++;
+
+			// Maybe free la sfarsit?????
+		}
+
+	}
 }

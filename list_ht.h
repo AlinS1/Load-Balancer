@@ -1,7 +1,6 @@
 #ifndef LIST_HT_H_
 #define LIST_HT_H_
 
-
 struct ll_node_t;
 typedef struct ll_node_t ll_node_t;
 struct linked_list_t;
@@ -37,5 +36,8 @@ void ht_remove_entry(hashtable_t *ht, void *key);
 void ht_free(hashtable_t *ht);
 unsigned int ht_get_size(hashtable_t *ht);
 unsigned int ht_get_hmax(hashtable_t *ht);
+void move_objects_ht_by_hash(hashtable_t *ht_receive, hashtable_t *ht_give,
+							 unsigned int hash_receive);
+void move_all_objects_ht(hashtable_t *ht_receive, hashtable_t *ht_give);
 
 #endif /* LIST_HT_H_ */
