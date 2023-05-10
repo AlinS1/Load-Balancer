@@ -10,7 +10,7 @@
 
 #define MIN_HASH 0
 #define MAX_HASH 360
-#define INT_MAX 2147483647
+#define UINT_MAX 4294967295
 
 struct eticheta {
 	int nr_eticheta;
@@ -64,15 +64,6 @@ void loader_add_server(load_balancer *main, int server_id)
 	/* TODO 2 */
 	if (!main)
 		return;
-	// printf("LOAD:\n");
-	// for (int i = 0; i < main->nr_servers * 3; i++) {
-	// 	if (main->servers_et[i]->server == NULL)
-	// 		printf("NU e\n");
-
-	// 	printf("i:%d; id:%d ", i, main->servers_et[i]->server->id);
-	// 	printf("et:%d ", main->servers_et[i]->nr_eticheta);
-	// 	printf("hash: %d\n", main->servers_et[i]->hash);
-	// }
 
 	// Server init
 	// printf("server_id: %d\n", server_id);
@@ -160,39 +151,56 @@ void loader_add_server(load_balancer *main, int server_id)
 		}
 	}
 
-	// printf("LOAD\n");
+	// printf("\n========\nLOADED_sv:%d\n=========\n", new_server->id);
 	// for (int i = 0; i < main->nr_servers * 3; i++) {
-	// 	if (!main->servers_et[i]->server)
+	// 	if (main->servers_et[i]->server == NULL)
 	// 		printf("NU e\n");
 
 	// 	printf("i:%d; id:%d ", i, main->servers_et[i]->server->id);
-	// 	// printf("et:%d ", main->servers_et[i]->nr_eticheta);
+	// 	printf("et:%d ", main->servers_et[i]->nr_eticheta);
 	// 	printf("hash: %u\n", main->servers_et[i]->hash);
 	// }
 
 	// ===== ELEMENTE =====
-
-	int curr_server_id = new_server->id;
+	int added_server_id = new_server->id;
 	for (int i = 0; i < main->nr_servers * 3; i++) {
-		if (main->servers_et[i]->id_server == curr_server_id) {
+		if (main->servers_et[i]->id_server == added_server_id) {
 			if (i + 1 < main->nr_servers * 3 &&
-				main->servers_et[i + 1]->id_server == curr_server_id) {
+				main->servers_et[i + 1]->id_server == added_server_id) {
 				continue;
 			}
-			// If we reach the last server in hashring, it will get the
-			// elements of the first server in hashring.
+
+			if (i == 0) {
+				// If we add a server on pos 0, we need to move the elements
+				// from hash[last]... UINT_MAX & 0 ... hash[0] from server[1] to
+				// server[0]
+				move_objects_ht_by_hash(main->servers_et[0]->server->ht,
+										main->servers_et[1]->server->ht,
+										main->servers_et[0]->hash, 0);
+				move_objects_ht_by_hash(
+					main->servers_et[0]->server->ht,
+					main->servers_et[1]->server->ht, UINT_MAX,
+					main->servers_et[main->nr_servers * 3 - 1]->hash);
+				continue;
+			}
+
 			if (i == main->nr_servers * 3 - 1) {
+				// If we add a server on pos last, we need to move the elements
+				// from hash[last-1] ... hash[last] from server[0] to
+				// server[last]
 				move_objects_ht_by_hash(main->servers_et[i]->server->ht,
 										main->servers_et[0]->server->ht,
-										main->servers_et[i]->hash);
+										main->servers_et[i]->hash,
+										main->servers_et[i - 1]->hash);
 				continue;
 			}
-			// takes elements from the next server in hashring
-			else {
-				move_objects_ht_by_hash(main->servers_et[i]->server->ht,
-										main->servers_et[i + 1]->server->ht,
-										main->servers_et[i]->hash);
-			}
+			// If we add a server on a random pos, we need to move the elements
+			// from hash[pos-1] ... hash[pos] from server[pos + 1] to
+			// server[pos]
+			move_objects_ht_by_hash(main->servers_et[i]->server->ht,
+									main->servers_et[i + 1]->server->ht,
+									main->servers_et[i]->hash,
+									main->servers_et[i - 1]->hash);
 		}
 	}
 }
@@ -202,6 +210,7 @@ void loader_remove_server(load_balancer *main, int server_id)
 	/* TODO 3 */
 	if (!main)
 		return;
+	// printf("\n====removed_sv_id:%d ====\n", server_id);
 
 	// printf("INAINTE:\n");
 	// for (int i = 0; i < main->nr_servers * 3; i++) {
@@ -221,17 +230,36 @@ void loader_remove_server(load_balancer *main, int server_id)
 				main->servers_et[i + 1]->id_server == server_id) {
 				continue;
 			}
-			// If we reach the last server in hashring, it will give the
-			// elements to the first server in hashring.
+
+			if (i == 0) {
+				// If we remove the first server, we need to move the
+				// elements from hash[last] ... U_INTMAX & 0 ... hash[0] to
+				// server[1]
+				move_objects_ht_by_hash(
+					main->servers_et[1]->server->ht,
+					main->servers_et[0]->server->ht, UINT_MAX,
+					main->servers_et[main->nr_servers * 3 - 1]->hash);
+				move_objects_ht_by_hash(main->servers_et[1]->server->ht,
+										main->servers_et[0]->server->ht,
+										main->servers_et[0]->hash, 0);
+				continue;
+			}
+
 			if (i == main->nr_servers * 3 - 1) {
+				// If we remove the last server, we need to move the
+				// elements from hash[last - 1] ... hash[last] to server[0]
 				move_objects_ht_by_hash(main->servers_et[0]->server->ht,
 										main->servers_et[i]->server->ht,
-										INT_MAX);
-			} else {  // moves elements to the next server in hashring
-				move_objects_ht_by_hash(main->servers_et[i + 1]->server->ht,
-										main->servers_et[i]->server->ht,
-										main->servers_et[i + 1]->hash);
-			}
+										main->servers_et[i]->hash,
+										main->servers_et[i - 1]->hash);
+				continue;
+			}  // moves elements to the next server in hashring
+			// If we remove a random server, we need to move the
+			// elements from hash[pos - 1] ... hash[pos] to server[pos + 1]
+			move_objects_ht_by_hash(main->servers_et[i + 1]->server->ht,
+									main->servers_et[i]->server->ht,
+									main->servers_et[i]->hash,
+									main->servers_et[i - 1]->hash);
 		}
 	}
 
@@ -299,7 +327,11 @@ void loader_store(load_balancer *main, char *key, char *value, int *server_id)
 
 	unsigned int hash_obj = hash_function_key(key);
 
-	if (hash_obj < main->servers_et[0]->hash) {
+	// If the object's hash is bigger than the last server's, we will
+	// put it in the first server (because of the circle structure of the
+	// hashring).
+	if (hash_obj <= main->servers_et[0]->hash ||
+		hash_obj > main->servers_et[main->nr_servers * 3 - 1]->hash) {
 		*server_id = main->servers_et[0]->server->id;
 		server_store(main->servers_et[0]->server, key, value);
 		return;
@@ -312,54 +344,32 @@ void loader_store(load_balancer *main, char *key, char *value, int *server_id)
 			server_store(main->servers_et[i + 1]->server, key, value);
 			return;
 		}
-	// If the object's hash is bigger than the last server's, we will
-	// put it in the first server.
-	if (hash_obj > main->servers_et[main->nr_servers * 3 - 1]->hash) {
-		*server_id = main->servers_et[0]->server->id;
-		server_store(main->servers_et[0]->server, key, value);
-		return;
-	}
 }
 
 char *loader_retrieve(load_balancer *main, char *key, int *server_id)
 {
 	/* TODO 5 */
-	// if(!main || !main->servers_et)
-	//     return NULL;
-
-	// for(int i = 0 ; i < main->nr_servers * 3 ; i++){
-	//     if(!main->servers_et[i]->server)
-	//         printf("NU e\n");
-
-	//     printf("i:%d; id:%d ", i, main->servers_et[i]->server->id);
-	//     printf("et:%d ", main->servers_et[i]->nr_eticheta);
-	//     printf("hash: %d\n", main->servers_et[i]->hash);
-	// }
+	if (!main || !main->servers_et)
+		return NULL;
 
 	unsigned int hash_obj = hash_function_key(key);
-
+	//printf("\n=====\nhash_obj:%u; key:%s\n====\n", hash_obj, key);
 	int i;
-	// Before first "eticheta"
-	if (hash_obj < main->servers_et[0]->hash) {
+	// Before first "eticheta" or after last "eticheta" (because of the circling
+	// structure of the hashring)
+	if (hash_obj <= main->servers_et[0]->hash ||
+		hash_obj > main->servers_et[main->nr_servers * 3 - 1]->hash) {
 		*server_id = main->servers_et[0]->server->id;
 		char *value = server_retrieve(main->servers_et[0]->server, key);
 		return value;
 	}
 
 	for (i = 0; i < main->nr_servers * 3 - 1; i++)
-		if (main->servers_et[i]->hash < hash_obj &&
-			hash_obj < main->servers_et[i + 1]->hash) {
+		if (hash_obj <= main->servers_et[i + 1]->hash) {
 			*server_id = main->servers_et[i + 1]->server->id;
 			char *value = server_retrieve(main->servers_et[i + 1]->server, key);
 			return value;
 		}
-
-	// After last "eticheta"
-	if (hash_obj > main->servers_et[main->nr_servers * 3 - 1]->hash) {
-		*server_id = main->servers_et[0]->server->id;
-		char *value = server_retrieve(main->servers_et[0]->server, key);
-		return value;
-	}
 
 	return NULL;
 }

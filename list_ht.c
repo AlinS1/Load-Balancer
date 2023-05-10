@@ -526,10 +526,11 @@ unsigned int ht_get_hmax(hashtable_t *ht)
 
 // Moves the elements from 2nd to 1st, considering the given hash
 void move_objects_ht_by_hash(hashtable_t *ht_receive, hashtable_t *ht_give,
-							 unsigned int hash_receive)
+							 unsigned int hash_high, unsigned int hash_low)
 {
 	// Go through the elements of the hashtable that may have to transfer
 	// some of its elements
+	
 	for (unsigned int i = 0; i < ht_give->hmax; ++i) {
 		ll_node_t *node = ht_give->buckets[i]->head;
 		while (node != NULL) {
@@ -540,8 +541,11 @@ void move_objects_ht_by_hash(hashtable_t *ht_receive, hashtable_t *ht_give,
 
 			// If we find an element to transfer, we put it in ht_receive
 			// and eliminate it from ht_give.
-			if (hash_receive > hash_function_key(current_key)) {
+			if (hash_high > hash_function_key((void *)current_key) &&
+				hash_function_key((void *)current_key) > hash_low) {
 				char *current_value = (char *)information->value;
+				//printf("\nhash_transferred:%u, value: %s\n",
+				//	   hash_function_key((void *)current_key), current_value);
 				ht_put(ht_receive, current_key, strlen(current_key) + 1,
 					   current_value, strlen(current_value) + 1);
 				ht_give->key_val_free_function(node->data);
@@ -596,6 +600,5 @@ void move_all_objects_ht(hashtable_t *ht_receive, hashtable_t *ht_give)
 
 			// Maybe free la sfarsit?????
 		}
-
 	}
 }

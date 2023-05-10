@@ -37,7 +37,7 @@ void ht_free(hashtable_t *ht);
 unsigned int ht_get_size(hashtable_t *ht);
 unsigned int ht_get_hmax(hashtable_t *ht);
 void move_objects_ht_by_hash(hashtable_t *ht_receive, hashtable_t *ht_give,
-							 unsigned int hash_receive);
+							 unsigned int hash_high, unsigned int hash_low);
 void move_all_objects_ht(hashtable_t *ht_receive, hashtable_t *ht_give);
 
 #endif /* LIST_HT_H_ */

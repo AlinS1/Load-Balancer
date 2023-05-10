@@ -28,12 +28,17 @@ void server_store(server_memory *server, char *key, char *value)
 char *server_retrieve(server_memory *server, char *key)
 {
 	/* TODO 3 */
+	if (!server)
+		return NULL;
 	return (char *)ht_get(server->ht, key);
 }
 
 void server_remove(server_memory *server, char *key)
 {
 	/* TODO 4 */
+	if (!ht_has_key(server->ht, key))
+		return;
+	ht_remove_entry(server->ht, key);
 }
 
 void free_server_memory(server_memory *server)
