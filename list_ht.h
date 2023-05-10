@@ -47,4 +47,4 @@ unsigned int ht_get_hmax(hashtable_t *ht);
 void move_objects_ht_by_hash(hashtable_t *ht_receive, hashtable_t *ht_give,
 							 unsigned int hash_high, unsigned int hash_low);
 
-#endif	// LIST_HT_H_
+#endif 	// LIST_HT_H_

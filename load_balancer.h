@@ -112,4 +112,4 @@ int find_pos_for_label(load_balancer *main, int i, label *new_label);
 int cases_move_objects_for_remove_server(load_balancer *main, int i,
 										 int server_id);
 
-#endif	// LOAD_BALANCER_H_
+#endif 	// LOAD_BALANCER_H_

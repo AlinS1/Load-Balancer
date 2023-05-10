@@ -9,8 +9,7 @@
 #include "server.h"
 #include "utils.h"
 
-#define MIN_HASH 0
-#define MAX_HASH 360
+#define NR_L 3 	// number of labels for each server
 #define UINT_MAX 4294967295
 
 struct label {
@@ -23,7 +22,7 @@ struct label {
 typedef struct label label;
 
 struct load_balancer {
-	label **hash_ring;	// array of pointers to labels
+	label **hash_ring; 	// array of pointers to labels
 	int nr_servers;
 };
 
@@ -71,7 +70,7 @@ void loader_add_server(load_balancer *main, int server_id)
 	// ===== LABELS =====
 	if (main->nr_servers == 0) {  // First added server
 		main->nr_servers = 1;
-		main->hash_ring = malloc(sizeof(label *) * 3);
+		main->hash_ring = malloc(sizeof(label *) * NR_L);
 		DIE(!main->hash_ring, "malloc failed");
 
 		// Create and put the labels in the hash ring
@@ -88,17 +87,19 @@ void loader_add_server(load_balancer *main, int server_id)
 
 		order_labels(main);	 // Order the labels in the hash ring.
 
-	} else {  // The added server is not the first to have been added
+	} else {  // The server to add is not the first to have been added
 		main->nr_servers++;
 
 		// Resize the array of labels.
 		label **aux;
-		aux = realloc(main->hash_ring, sizeof(label *) * main->nr_servers * 3);
+		aux =
+			realloc(main->hash_ring, sizeof(label *) * main->nr_servers * NR_L);
 		DIE(!aux, "realloc failed");
 
 		if (aux)
 			main->hash_ring = aux;
-		for (int i = (main->nr_servers - 1) * 3; i < main->nr_servers * 3; i++)
+		for (int i = (main->nr_servers - 1) * NR_L; i < main->nr_servers * NR_L;
+			 i++)
 			main->hash_ring[i] = NULL;
 
 		// Create and put the new labels in the array
@@ -112,7 +113,7 @@ void loader_add_server(load_balancer *main, int server_id)
 			new_label->hash = hash_function_servers(&new_label->nr_label);
 
 			int pos = find_pos_for_label(main, i, new_label);
-			int current_total_elements = (main->nr_servers - 1) * 3 + i;
+			int current_total_elements = (main->nr_servers - 1) * NR_L + i;
 
 			// Move elements to the right and make room for the new label.
 			for (int k = current_total_elements - 1; k >= pos; k--)
@@ -124,11 +125,11 @@ void loader_add_server(load_balancer *main, int server_id)
 
 	// ===== OBJECTS =====
 	int added_server_id = new_server->id;
-	for (int i = 0; i < main->nr_servers * 3; i++) {
+	for (int i = 0; i < main->nr_servers * NR_L; i++) {
 		// For each label, if applicable, we transfer objects from the following
 		// label that will have a smaller hash than the label's hash.
 		if (main->hash_ring[i]->id_server == added_server_id) {
-			if (i + 1 < main->nr_servers * 3 &&
+			if (i + 1 < main->nr_servers * NR_L &&
 				main->hash_ring[i + 1]->id_server == added_server_id)
 				continue;
 			else
@@ -143,18 +144,18 @@ void loader_remove_server(load_balancer *main, int server_id)
 		return;
 
 	// First transfer the objects of the servers to be removed
-	int moved_last = 0;
-	for (int i = 0; i < main->nr_servers * 3; i++) {
+	int moved_first_n_last = 0;
+	for (int i = 0; i < main->nr_servers * NR_L; i++) {
 		if (main->hash_ring[i]->id_server == server_id) {
 			// Do not transfer from a server to the same server
-			if (i + 1 < main->nr_servers * 3 &&
+			if (i + 1 < main->nr_servers * NR_L &&
 				main->hash_ring[i + 1]->id_server == server_id) {
 				continue;
 			}
-			if (i == main->nr_servers * 3 - 1 && moved_last == 1)
+			if (i == main->nr_servers * NR_L - 1 && moved_first_n_last == 1)
 				continue;
 			if (i == 0)
-				moved_last =
+				moved_first_n_last =
 					cases_move_objects_for_remove_server(main, i, server_id);
 			else
 				cases_move_objects_for_remove_server(main, i, server_id);
@@ -162,7 +163,7 @@ void loader_remove_server(load_balancer *main, int server_id)
 	}
 
 	// Free the memory of the labels that need to be removed.
-	for (int i = 0; i < main->nr_servers * 3; i++) {
+	for (int i = 0; i < main->nr_servers * NR_L; i++) {
 		if (main->hash_ring[i]->id_server == server_id) {
 			// Free the server memory (only once)
 			if (main->hash_ring[i]->nr_label == main->hash_ring[i]->id_server) {
@@ -177,14 +178,14 @@ void loader_remove_server(load_balancer *main, int server_id)
 
 	// Move the labels to the left in order to position the NULL elements at the
 	// end of the array.
-	for (int i = 0; i < (main->nr_servers - 1) * 3; i++) {
+	for (int i = 0; i < (main->nr_servers - 1) * NR_L; i++) {
 		if (main->hash_ring[i] == NULL) {
 			// Look for a non-NULL element and swap
 			int j = i + 1;
-			while (j < main->nr_servers * 3 && main->hash_ring[j] == NULL) {
+			while (j < main->nr_servers * NR_L && main->hash_ring[j] == NULL) {
 				j++;
 			}
-			if (j < main->nr_servers * 3) {
+			if (j < main->nr_servers * NR_L) {
 				main->hash_ring[i] = main->hash_ring[j];
 				main->hash_ring[j] = NULL;
 			}
@@ -194,7 +195,7 @@ void loader_remove_server(load_balancer *main, int server_id)
 	// Resize the array of labels.
 	main->nr_servers--;
 	label **aux;
-	aux = realloc(main->hash_ring, sizeof(label *) * main->nr_servers * 3);
+	aux = realloc(main->hash_ring, sizeof(label *) * main->nr_servers * NR_L);
 	DIE(!aux, "realloc failed");
 
 	if (aux)
@@ -212,13 +213,13 @@ void loader_store(load_balancer *main, char *key, char *value, int *server_id)
 	// label's we will store it in the first label's server (because of the
 	// circular structure of the hash_ring)
 	if (hash_obj <= main->hash_ring[0]->hash ||
-		hash_obj > main->hash_ring[main->nr_servers * 3 - 1]->hash) {
+		hash_obj > main->hash_ring[main->nr_servers * NR_L - 1]->hash) {
 		*server_id = main->hash_ring[0]->server->id;
 		server_store(main->hash_ring[0]->server, key, value);
 		return;
 	}
 
-	for (int i = 1; i < main->nr_servers * 3; i++)
+	for (int i = 1; i < main->nr_servers * NR_L; i++)
 		if (hash_obj <= main->hash_ring[i]->hash) {
 			*server_id = main->hash_ring[i]->server->id;
 			server_store(main->hash_ring[i]->server, key, value);
@@ -237,14 +238,14 @@ char *loader_retrieve(load_balancer *main, char *key, int *server_id)
 	// label's, it means the object was stored in the first label's server
 	// (because of the circular structure of the hash_ring)
 	if (hash_obj <= main->hash_ring[0]->hash ||
-		hash_obj > main->hash_ring[main->nr_servers * 3 - 1]->hash) {
+		hash_obj > main->hash_ring[main->nr_servers * NR_L - 1]->hash) {
 		*server_id = main->hash_ring[0]->server->id;
 		char *value = NULL;
 		value = server_retrieve(main->hash_ring[0]->server, key);
 		return value;
 	}
 
-	for (int i = 1; i < main->nr_servers * 3; i++)
+	for (int i = 1; i < main->nr_servers * NR_L; i++)
 		if (hash_obj <= main->hash_ring[i]->hash) {
 			*server_id = main->hash_ring[i]->server->id;
 			char *value = NULL;
@@ -257,7 +258,7 @@ char *loader_retrieve(load_balancer *main, char *key, int *server_id)
 
 void free_load_balancer(load_balancer *main)
 {
-	for (int i = 0; i < main->nr_servers * 3; i++) {
+	for (int i = 0; i < main->nr_servers * NR_L; i++) {
 		// Because all 3 labels have a pointer to the same server, we need to
 		// free the memory of a server only once, for the original label that
 		// has the number equal to the server's id.
@@ -286,11 +287,11 @@ void cases_move_objects_for_add_server(load_balancer *main, int i)
 								main->hash_ring[0]->hash, 0);
 		move_objects_ht_by_hash(
 			main->hash_ring[0]->server->ht, main->hash_ring[1]->server->ht,
-			UINT_MAX, main->hash_ring[main->nr_servers * 3 - 1]->hash);
+			UINT_MAX, main->hash_ring[main->nr_servers * NR_L - 1]->hash);
 		return;
 	}
 
-	if (i == main->nr_servers * 3 - 1) {
+	if (i == main->nr_servers * NR_L - 1) {
 		// If we add a server on pos last, we need to move the elements
 		// from hash[last-1] ... hash[last] from server[0] to
 		// server[last]
@@ -313,7 +314,7 @@ void order_labels(load_balancer *main)
 	for (int i = 0; i < 2; i++) {
 		unsigned int hash_min = main->hash_ring[i]->hash;
 		int pos_hash_min = i;
-		for (int j = i + 1; j < 3; j++) {
+		for (int j = i + 1; j < NR_L; j++) {
 			if (hash_min > main->hash_ring[j]->hash) {
 				hash_min = main->hash_ring[j]->hash;
 				pos_hash_min = j;
@@ -330,7 +331,7 @@ void order_labels(load_balancer *main)
 int find_pos_for_label(load_balancer *main, int i, label *new_label)
 {
 	int pos = 0;
-	int current_total_elements = (main->nr_servers - 1) * 3 + i;
+	int current_total_elements = (main->nr_servers - 1) * NR_L + i;
 	for (pos = 0; pos < current_total_elements; pos++) {
 		// If the hashes are the same, order by server id
 		if (new_label->hash == main->hash_ring[pos]->hash) {
@@ -354,7 +355,7 @@ int cases_move_objects_for_remove_server(load_balancer *main, int i,
 										 int server_id)
 {
 	if (i == 0 &&
-		main->hash_ring[main->nr_servers * 3 - 1]->id_server == server_id) {
+		main->hash_ring[main->nr_servers * NR_L - 1]->id_server == server_id) {
 		// If we remove the first and last server, we need to move the
 		// elements from hash[last - 1] ... hash [last] from
 		// server[last] -> server[1]
@@ -363,12 +364,12 @@ int cases_move_objects_for_remove_server(load_balancer *main, int i,
 
 		move_objects_ht_by_hash(
 			main->hash_ring[1]->server->ht,
-			main->hash_ring[main->nr_servers * 3 - 1]->server->ht,
-			main->hash_ring[main->nr_servers * 3 - 1]->hash,
-			main->hash_ring[main->nr_servers * 3 - 2]->hash);
+			main->hash_ring[main->nr_servers * NR_L - 1]->server->ht,
+			main->hash_ring[main->nr_servers * NR_L - 1]->hash,
+			main->hash_ring[main->nr_servers * NR_L - 2]->hash);
 		move_objects_ht_by_hash(
 			main->hash_ring[1]->server->ht, main->hash_ring[0]->server->ht,
-			UINT_MAX, main->hash_ring[main->nr_servers * 3 - 1]->hash);
+			UINT_MAX, main->hash_ring[main->nr_servers * NR_L - 1]->hash);
 		move_objects_ht_by_hash(main->hash_ring[1]->server->ht,
 								main->hash_ring[0]->server->ht,
 								main->hash_ring[0]->hash, 0);
@@ -382,14 +383,14 @@ int cases_move_objects_for_remove_server(load_balancer *main, int i,
 		// server[1]
 		move_objects_ht_by_hash(
 			main->hash_ring[1]->server->ht, main->hash_ring[0]->server->ht,
-			UINT_MAX, main->hash_ring[main->nr_servers * 3 - 1]->hash);
+			UINT_MAX, main->hash_ring[main->nr_servers * NR_L - 1]->hash);
 		move_objects_ht_by_hash(main->hash_ring[1]->server->ht,
 								main->hash_ring[0]->server->ht,
 								main->hash_ring[0]->hash, 0);
 		return 0;
 	}
 
-	if (i == main->nr_servers * 3 - 1) {
+	if (i == main->nr_servers * NR_L - 1) {
 		// If we remove the last server, we need to move the
 		// elements from hash[last - 1] ... hash[last] to server[0]
 		move_objects_ht_by_hash(
