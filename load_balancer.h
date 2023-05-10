@@ -1,4 +1,4 @@
-/* Copyright 2023 <> */
+/* Copyright 2023 Similea Alin-Andrei 314CA */
 #ifndef LOAD_BALANCER_H_
 #define LOAD_BALANCER_H_
 

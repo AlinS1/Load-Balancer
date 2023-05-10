@@ -1,4 +1,4 @@
-/* Copyright 2023 <> */
+/* Copyright 2023 Similea Alin-Andrei 314CA */
 #include "server.h"
 
 #include <stdlib.h>
@@ -29,6 +29,8 @@ char *server_retrieve(server_memory *server, char *key)
 {
 	/* TODO 3 */
 	if (!server)
+		return NULL;
+	if (ht_has_key(server->ht, key) == 0)
 		return NULL;
 	return (char *)ht_get(server->ht, key);
 }

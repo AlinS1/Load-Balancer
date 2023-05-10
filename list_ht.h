@@ -1,3 +1,4 @@
+/* Copyright 2023 Similea Alin-Andrei 314CA */
 #ifndef LIST_HT_H_
 #define LIST_HT_H_
 

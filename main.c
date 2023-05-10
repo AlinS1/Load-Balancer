@@ -1,4 +1,4 @@
-/* Copyright 2023 <> */
+/* Copyright 2023 Similea Alin-Andrei 314CA */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -1,3 +1,4 @@
+/* Copyright 2023 Similea Alin-Andrei 314CA */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -248,9 +249,9 @@ int compare_function_chars(void *a, void *b)
 	char int_a = *(char *)a;
 	char int_b = *(char *)b;
 
-	if (int_a == int_b) {
+	if (int_a == int_b)
 		return 0;
-	} else
+	else
 		return 1;
 }
 
@@ -502,10 +503,12 @@ void ht_free(hashtable_t *ht)
 								   // pointeaza nodurile
 	}
 
-	free(ht->buckets);	// eliberam memoria la care pointeaza dublul pointer
-						// buckets, deci avem 0 liste in array
-	free(ht);			// eliberam memoria la care pointeaza ht, deci stergem
-						// hashtable-ul
+	// eliberam memoria la care pointeaza dublul pointer
+	// buckets, deci avem 0 liste in array
+	free(ht->buckets);
+	// eliberam memoria la care pointeaza ht, deci stergem
+	// hashtable-ul
+	free(ht);
 }
 
 unsigned int ht_get_size(hashtable_t *ht)
@@ -530,7 +533,7 @@ void move_objects_ht_by_hash(hashtable_t *ht_receive, hashtable_t *ht_give,
 {
 	// Go through the elements of the hashtable that may have to transfer
 	// some of its elements
-	
+
 	for (unsigned int i = 0; i < ht_give->hmax; ++i) {
 		ll_node_t *node = ht_give->buckets[i]->head;
 		while (node != NULL) {
@@ -544,7 +547,7 @@ void move_objects_ht_by_hash(hashtable_t *ht_receive, hashtable_t *ht_give,
 			if (hash_high > hash_function_key((void *)current_key) &&
 				hash_function_key((void *)current_key) > hash_low) {
 				char *current_value = (char *)information->value;
-				//printf("\nhash_transferred:%u, value: %s\n",
+				// printf("\nhash_transferred:%u, value: %s\n",
 				//	   hash_function_key((void *)current_key), current_value);
 				ht_put(ht_receive, current_key, strlen(current_key) + 1,
 					   current_value, strlen(current_value) + 1);
