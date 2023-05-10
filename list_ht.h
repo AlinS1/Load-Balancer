@@ -2,6 +2,7 @@
 #ifndef LIST_HT_H_
 #define LIST_HT_H_
 
+/*========= LINKED LIST IMPLEMENTATION =========*/
 struct ll_node_t;
 typedef struct ll_node_t ll_node_t;
 struct linked_list_t;
@@ -15,6 +16,7 @@ void ll_free(linked_list_t **pp_list);
 void ll_print_int(linked_list_t *list);
 void ll_print_string(linked_list_t *list);
 
+/*========= HASHTABLE IMPLEMENTATION =========*/
 struct info;
 typedef struct info info;
 struct hashtable_t;
@@ -37,8 +39,12 @@ void ht_remove_entry(hashtable_t *ht, void *key);
 void ht_free(hashtable_t *ht);
 unsigned int ht_get_size(hashtable_t *ht);
 unsigned int ht_get_hmax(hashtable_t *ht);
+
+/*========= EXTRA =========*/
+
+// Moves the elements that are between hash_low and hash_high from ht_give to
+// ht_receive.
 void move_objects_ht_by_hash(hashtable_t *ht_receive, hashtable_t *ht_give,
 							 unsigned int hash_high, unsigned int hash_low);
-void move_all_objects_ht(hashtable_t *ht_receive, hashtable_t *ht_give);
 
-#endif /* LIST_HT_H_ */
+#endif	// LIST_HT_H_
