@@ -1,7 +1,6 @@
 **Similea Alin-Andrei**
-**314CA**
 
-## Load Balancer - SDA 2
+## Load Balancer
 
 ### Implementation Description:
 
